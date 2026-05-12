@@ -53,9 +53,12 @@ npm run server
 
 ### Caleb Jawa Hkun
 
-## Version 1.0.0
+## Version 1.1.0
 
  1. Inngest Webhook setup completed with Clerk.
  2. Moongoose initial DB connection setup completed on MongoDB atlas.
  3. Inngest auth eent capture and data relay with Moongoose completed.
  4. A user model is created via Moongose for user data saving.
+
+## Bug Fixes
+- inngest index function creationFunciton struction error fixed.
