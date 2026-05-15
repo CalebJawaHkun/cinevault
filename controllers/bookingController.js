@@ -1,5 +1,6 @@
 import Show from "../models/Show.js";
 import Booking from "../models/Booking.js";
+import stripe from "stripe";
 
 // check avialability of Selected Seats
 const checkSeatsAvailability = async (showId, selectedSeats) => {
@@ -9,7 +10,7 @@ const checkSeatsAvailability = async (showId, selectedSeats) => {
 
         const occupiedSeats = showData.occupiedSeats
         const isAnySeatTaken = selectedSeats
-            .some(seat => occupiedSeats(seat))
+            .some(seat => occupiedSeats[seat])
 
         return !isAnySeatTaken
     } catch(err) {
@@ -26,10 +27,14 @@ export const createBooking = async (req, res) => {
         const {origin} = req.headers
 
         const isAvailable = await checkSeatsAvailability(showId, selectedSeats)
-        if(!isAvailable)
-            return res.status(400).json({success: false, message: "Selected Seats are not available."})
 
+        if(!isAvailable) {
+            console.log('Was not available!')
+            return res.status(400).json({success: false, message: "Selected Seats are not available."})
+        }
+        
         const showData = await Show.findById(showId).populate('movie')
+        
         const booking = await Booking.create({
             user: userId,
             show: showId,
@@ -45,7 +50,34 @@ export const createBooking = async (req, res) => {
         await showData.save()
 
 
-        res.json({success: true, message: 'Booked Successfully'})
+        // STRIPE PAYMENT CONFIG
+        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY)
+        const line_items = [{
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: showData.movie.title
+                },
+                unit_amount: Math.floor(booking.amount) * 100
+            },
+            quantity: 1
+        }]
+
+        const session = await stripeInstance.checkout.sessions.create({
+            success_url: `${origin}/loading/my-bookings`,
+            cancel_url: `${origin}/my-bookings`,
+            line_items: line_items,
+            mode: 'payment',
+            metadata: {
+                bookingId: booking._id.toString()
+            },
+            expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 30 minutes
+        })
+
+        booking.paymentLink = session.url
+        await booking.save()
+
+        res.json({success: true, url: session.url})
 
     } catch(err) {
         console.error(err)

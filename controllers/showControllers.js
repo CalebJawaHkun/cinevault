@@ -14,15 +14,15 @@ export const getNowPlayingMovies = async (req, res) => {
         const movies = data.results
         res.json({success: true, movies})
     } catch(error) {
-        console.error(error)
-        res.json({success: false, message: error.message})
+        console.error('Show Controller: ' +error)
+        res.status(400).json({success: false, message: error.message})
     }
 }
 
 // Add new show to database
 export const addShow = async (req, res) => {
     try {
-        const {movieId, showsInput, showPrice} = req.body
+        const {movieId, showInput, showPrice} = req.body
         let movie = await Movie.findById(movieId)
 
         if(!movie) {
@@ -61,7 +61,7 @@ export const addShow = async (req, res) => {
         }
 
         const showToCreate = []
-        showsInput.forEach(show => {
+        showInput.forEach(show => {
             const showDate = show.date
 
             show.time.forEach(time => {
@@ -99,7 +99,9 @@ export const getShows = async (req, res) => {
 
         const uniqueShows = new Set(shows.map(show => show.movie))
         
+        // console.log('Shows: ', shows)
         res.json({success: true, shows: Array.from(uniqueShows)})
+
     } catch(err) {
         console.error(err)
         res.status(401).json({success: false, message: err.message})

@@ -20,6 +20,9 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "inngest": "^4.4.0",
-    "mongoose": "^9.6.2"
+    "mongoose": "^9.6.2",
+    "morgan": "^1.10.1",
+    "stripe": "^22.1.1",
+    "svix": "^1.93.0"
   }
 }

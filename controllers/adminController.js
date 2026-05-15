@@ -6,11 +6,11 @@ export const isAdmin = async (req, res) => {
     res.json({success: true, isAdmin: true})
 }
 
-export const getDashboarData = async (req, res) => {
+export const getDashboardData = async (req, res) => {
     try {
         const bookings = await Booking.find({isPaid: true})
         const activeShows = await Show
-        .find({showDatetime: {$gte: new Date()}})
+        .find({showDateTime: {$gte: new Date()}})
         .populate('movie')
 
         const totalUser = await User.countDocuments()
@@ -22,7 +22,9 @@ export const getDashboarData = async (req, res) => {
             totalUser
         }
 
-        es.json({success: true, dashboardData})
+        // console.log('Dashboard Activeshows: ', activeShows)
+
+        res.json({success: true, dashboardData})
         
     } catch(err) {
         console.error(err)
