@@ -57,32 +57,49 @@ const syncUserUpdation = inngest.createFunction(
 
 )
 
-/* const releaseSeatsAndDeleteBooking = inngest.createFunction(
-  { id: 'release-seats-delete-booking' },
-  { event: "app/checkpayment" },
-  async ({ event, step }) => {
-    const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
-    await step.sleepUntil('wait-for-10-minutes', tenMinutesLater);
 
-    await step.run('check-payment-status', async () => {
-      const bookingId = event.data.bookingId;
-      const booking = await Booking.findById(bookingId)
+// Inngest function to cancel booking and release the seats
 
-      if(!booking.isPaid) {
-        const show = await Show.findById()
-      }
-    })
-  }
-) */
+const releaseSeatsAndDeleteBooking = inngest.createFunction(
+    { id: "release-seats-delete-booking", 
+    triggers: [{ event: "app/checkpayment" }] },
+    async ({ event, step }) => {
+        const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000)
+
+        await step.sleepUntil('wait-for-10-minutes', tenMinutesLater)
+
+        await step.run('check-payment-status', async () => {
+            const bookingId = event.data.bookingId
+            const booking = await Booking.findById(bookingId)
+            
+
+            if(!booking.isPaid) {
+                const show = await Show.findById(booking.show)
+                booking.bookedSeats.forEach(seat => {
+                    delete show.occupiedSeats[seat]
+                })
+
+                show.markModified('occupiedSeats')
+                await show.save()
+                await Booking.findByIdAndDelete(booking._id)
+            }
+
+            console.log('Tried running Release Seats and Delete Booking')
+            console.log(`Booking id: ${booking._id}. Booking Is Paid: ${booking.isPaid}`)
+        })
+    }
+) 
 
 // Create an empty array where we'll export future Inngest functions
 export const functions = [
     syncUserCreation,
     syncUserDeletion,
-    syncUserUpdation
+    syncUserUpdation,
+    releaseSeatsAndDeleteBooking
 ];
 export {
     syncUserCreation,
     syncUserDeletion,
-    syncUserUpdation
+    syncUserUpdation,
+    releaseSeatsAndDeleteBooking
 }
