@@ -53,5 +53,8 @@ npm run server
 
 ### Caleb Jawa Hkun
 
-## Version 2.1.0
-### Added: Seat Releasing Function with inngest.
+## Version 2.2.0
+### Added: Confirmation Email.
+## APIS
+1. Nodemailer
+2. Brevo
