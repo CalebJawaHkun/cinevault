@@ -9,6 +9,7 @@ import showRouter from './routes/showRoutes.js'
 import bookingRouter from './routes/bookingRoutes.js'
 import adminRouter from './routes/adminRoutes.js'
 import userRouter from './routes/userRoutes.js'
+import { stripeWebhooks } from './controllers/stripeWebhook.js'
 import { protectAdmin } from './middleware/auth.js'
 import morgan from 'morgan'
 
@@ -16,8 +17,14 @@ const app = express()
 const port = 3000
  
 await connectDB()
+// Stripe Webhooks Route
+app.use(
+    '/api/stripe', 
+    express.raw({type: 'application/json'}), 
+    stripeWebhooks
+)
 
-// M-wares
+// M'wares
 app.use(morgan('dev'))
 app.use(express.json())
 app.use(cors())
