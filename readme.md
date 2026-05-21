@@ -53,8 +53,6 @@ npm run server
 
 ### Caleb Jawa Hkun
 
-## Version 2.2.0
-### Added: Confirmation Email.
-## APIS
-1. Nodemailer
-2. Brevo
+## Version 2.5.0
+### First Finalization
+## Added: 

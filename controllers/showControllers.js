@@ -1,6 +1,7 @@
 import axios from "axios"
 import Movie from "../models/Movie.js"
 import Show from "../models/Show.js"
+import { inngest } from "../inngest/index.js"
 
 // Playing Movies (via TMDB)
 export const getNowPlayingMovies = async (req, res) => {
@@ -24,6 +25,8 @@ export const addShow = async (req, res) => {
     try {
         const {movieId, showInput, showPrice} = req.body
         let movie = await Movie.findById(movieId)
+
+        console.log(movieId, showInput, showPrice)
 
         if(!movie) {
 
@@ -64,7 +67,7 @@ export const addShow = async (req, res) => {
         showInput.forEach(show => {
             const showDate = show.date
 
-            show.time.forEach(time => {
+            show.times.forEach(time => {
                 const dateTimeString = `${showDate}T${time}`
                 // console.log('.........................................................................' +dateTimeString)
                 showToCreate.push({
@@ -79,6 +82,14 @@ export const addShow = async (req, res) => {
 
         if(showToCreate.length > 0)
             await Show.insertMany(showToCreate)
+
+        // Trigger Inngest Event
+        await inngest.send({
+            name: "app/show.added",
+            data: {
+                movieTitle: movie.title
+            }
+        })
 
         res.status(201).json({success: true, message: 'Show added successfully~'})
 
